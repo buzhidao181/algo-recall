@@ -1,0 +1,286 @@
+/* =============================================================
+   AlgoRecall 主题系统
+   五套主题：废土 / 森林 / 海洋 / 经典黑白 / 黑客帝国
+   通过最外层容器上的 data-theme 属性切换，所有颜色统一走 CSS 变量。
+   ============================================================= */
+
+:root {
+  font-size: 16px;
+  line-height: 24px;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+
+  /* ---------- 废土风（默认） ---------- */
+  --font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", "SimHei", sans-serif;
+  --bg-deep: #26251f;              /* 最深背景：代码区 / 右侧面板 / 调用图 */
+  --bg-panel: #34332b;             /* 面板：工具栏 / 侧边栏 / 卡片 / 弹窗 */
+  --bg-panel-2: #2e2d27;           /* 内嵌面板：输入框 / 激活 tab / 嵌套卡片 */
+  --text-color: #d4c4a8;           /* 沙土色主文字 */
+  --text-muted: #9a8f79;           /* 次要文字 */
+  --text-faint: #7d7465;           /* 更弱文字 */
+  --accent-color: #c95a36;         /* 生锈红铜强调色 */
+  --on-accent: #f6efe3;            /* 强调色上的文字 */
+  --accent-soft: rgba(201, 90, 54, 0.18);
+  --border-color: #4a463c;
+  --border-soft: #5a5448;
+  --success-color: #7dab5a;
+  --warning-color: #d8a04a;
+  --danger-color: #d05a4a;
+  --danger-soft: rgba(208, 90, 74, 0.16);
+  --danger-text: #e8a49a;
+  --info-soft: rgba(201, 90, 54, 0.12);
+  --info-text: #e8d9b8;
+  --overlay: rgba(0, 0, 0, 0.5);
+  --hover-overlay: rgba(255, 255, 255, 0.06);
+  --radius-sm: 4px;
+  --radius: 8px;
+  --radius-lg: 12px;
+}
+
+[data-theme="forest"] {
+  --font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+  --bg-deep: #141c13;
+  --bg-panel: #222d21;
+  --bg-panel-2: #1d271c;
+  --text-color: #b3cbb5;
+  --text-muted: #7f9c82;
+  --text-faint: #64826b;
+  --accent-color: #4c9a5e;
+  --on-accent: #eaf6ec;
+  --accent-soft: rgba(76, 154, 94, 0.18);
+  --border-color: #2f3d30;
+  --border-soft: #354536;
+  --success-color: #4c9a5e;
+  --warning-color: #c79a4e;
+  --danger-color: #c95a52;
+  --danger-soft: rgba(201, 90, 82, 0.16);
+  --danger-text: #e2a39d;
+  --info-soft: rgba(76, 154, 94, 0.12);
+  --info-text: #cfe3d1;
+  --overlay: rgba(0, 0, 0, 0.5);
+  --hover-overlay: rgba(255, 255, 255, 0.05);
+  --radius-sm: 6px;
+  --radius: 12px;
+  --radius-lg: 16px;
+}
+
+[data-theme="ocean"] {
+  --font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+  --bg-deep: #0c1826;
+  --bg-panel: rgba(22, 40, 62, 0.72);
+  --bg-panel-2: rgba(18, 33, 54, 0.72);
+  --text-color: #a0c4d9;
+  --text-muted: #6e94ad;
+  --text-faint: #52788f;
+  --accent-color: #2d8cb8;
+  --on-accent: #eaf4f9;
+  --accent-soft: rgba(45, 140, 184, 0.18);
+  --border-color: rgba(84, 128, 160, 0.45);
+  --border-soft: rgba(84, 128, 160, 0.35);
+  --success-color: #3f9e86;
+  --warning-color: #c79a5e;
+  --danger-color: #d0606a;
+  --danger-soft: rgba(208, 96, 106, 0.16);
+  --danger-text: #eaa4aa;
+  --info-soft: rgba(45, 140, 184, 0.12);
+  --info-text: #c3dcea;
+  --overlay: rgba(4, 12, 20, 0.55);
+  --hover-overlay: rgba(255, 255, 255, 0.05);
+  --radius-sm: 5px;
+  --radius: 10px;
+  --radius-lg: 14px;
+}
+
+[data-theme="classic"] {
+  --font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+  --bg-deep: #ffffff;
+  --bg-panel: #f7f7f5;
+  --bg-panel-2: #ffffff;
+  --text-color: #111111;
+  --text-muted: #6b6b6b;
+  --text-faint: #9b9b9b;
+  --accent-color: #37352f;
+  --on-accent: #ffffff;
+  --accent-soft: rgba(55, 53, 47, 0.08);
+  --border-color: #e0e0dc;
+  --border-soft: #ebebe8;
+  --success-color: #2f9e44;
+  --warning-color: #e8870c;
+  --danger-color: #e03131;
+  --danger-soft: rgba(224, 49, 49, 0.08);
+  --danger-text: #c92a2a;
+  --info-soft: rgba(55, 53, 47, 0.06);
+  --info-text: #37352f;
+  --overlay: rgba(0, 0, 0, 0.25);
+  --hover-overlay: rgba(0, 0, 0, 0.04);
+  --radius-sm: 4px;
+  --radius: 6px;
+  --radius-lg: 10px;
+}
+
+[data-theme="matrix"] {
+  --font-family: "Consolas", "Courier New", "Microsoft YaHei", monospace;
+  --bg-deep: #0a0f0a;
+  --bg-panel: #0a0a0a;
+  --bg-panel-2: #000000;
+  --text-color: #7a8f7a;
+  --text-muted: #5a6b5a;
+  --text-faint: #3d4d3d;
+  --accent-color: #00ff41;
+  --on-accent: #000000;
+  --accent-soft: rgba(0, 255, 65, 0.15);
+  --border-color: #0f7a2f;
+  --border-soft: #0c5f27;
+  --success-color: #39ff14;
+  --warning-color: #ffbf00;
+  --danger-color: #ff3333;
+  --danger-soft: rgba(255, 51, 51, 0.15);
+  --danger-text: #ff8a8a;
+  --info-soft: rgba(0, 255, 65, 0.12);
+  --info-text: #00ff41;
+  --overlay: rgba(0, 0, 0, 0.72);
+  --hover-overlay: rgba(0, 255, 65, 0.05);
+  --radius-sm: 4px;
+  --radius: 6px;
+  --radius-lg: 10px;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background-color: var(--bg-deep); /* 跟随 data-theme（挂载前回落到 :root 默认废土深色） */
+  color: var(--text-color);
+  font-family: var(--font-family);
+}
+
+/* 主题质感：在承载 data-theme 的最外层容器上铺背景纹理 */
+[data-theme="wasteland"] {
+  background-color: var(--bg-deep);
+  background-image:
+    radial-gradient(1100px 520px at 15% -10%, rgba(201, 90, 54, 0.10), transparent 60%),
+    radial-gradient(900px 520px at 110% 110%, rgba(201, 90, 54, 0.06), transparent 55%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.012) 0 2px, transparent 2px 4px);
+}
+
+[data-theme="forest"] {
+  background-color: var(--bg-deep);
+  background-image:
+    radial-gradient(1100px 600px at 85% -10%, rgba(76, 154, 94, 0.12), transparent 60%),
+    radial-gradient(900px 600px at 0% 110%, rgba(76, 154, 94, 0.08), transparent 55%);
+}
+
+[data-theme="ocean"] {
+  background-color: var(--bg-deep);
+  background-image:
+    linear-gradient(160deg, rgba(45, 140, 184, 0.20), transparent 42%),
+    radial-gradient(1000px 620px at 50% 120%, rgba(45, 140, 184, 0.14), transparent 60%);
+}
+
+[data-theme="classic"] {
+  background-color: var(--bg-deep);
+  background-image: none;
+}
+
+[data-theme="matrix"] {
+  background-color: var(--bg-deep);
+  background-image:
+    linear-gradient(rgba(0, 255, 65, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 65, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  color: var(--text-color);
+  background-color: var(--bg-panel-2);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+button {
+  cursor: pointer;
+  font-weight: 500;
+  padding: 0.6em 1.2em;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--accent-color);
+}
+
+button:active:not(:disabled) {
+  background-color: var(--accent-soft);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+input,
+select,
+textarea {
+  padding: 0.5em 0.7em;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+::placeholder {
+  color: var(--text-faint);
+}
+
+select option {
+  background-color: var(--bg-panel);
+  color: var(--text-color);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--border-soft);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--accent-color);
+}
+
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+/* C++ 环境安装加载动画 */
+.gcc-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--border-color);
+  border-top-color: var(--accent-color);
+  border-radius: 50%;
+  animation: gcc-spin 0.9s linear infinite;
+}
+
+@keyframes gcc-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
