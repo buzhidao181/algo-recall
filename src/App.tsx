@@ -1,9 +1,20 @@
-import Editor from "@monaco-editor/react";
+import Editor, { loader } from "@monaco-editor/react";
+import * as monaco from "monaco-editor";
+import editorWorker from "monaco-editor/editor/editor.worker?worker";
 import { invoke } from "@tauri-apps/api/core";
 import { useState, useEffect, useRef, type ChangeEvent } from "react";
 import mermaid from "mermaid";
 import { fsrs, createEmptyCard, Rating, State } from "ts-fsrs";
+import { beginnerProblems, competitionProblems } from "./builtinProblems";
 import "./App.css";
+
+// 本地化 Monaco Editor：不再从 CDN 加载（规避严格 CSP 与国内网络问题）
+self.MonacoEnvironment = {
+  getWorker() {
+    return new editorWorker();
+  },
+};
+loader.config({ monaco });
 
 // 主题 key 列表与类型
 const THEME_KEYS = ["wasteland", "forest", "ocean", "classic", "matrix"] as const;
@@ -93,9 +104,15 @@ function isGccMissingError(e: unknown): boolean {
 
 function App() {
   useEffect(() => {
-    invoke("init_db").catch(console.error);
-    loadProblems();
-    loadDueCount();
+    (async () => {
+      try {
+        await invoke("init_db");
+      } catch (e) {
+        console.error("初始化数据库失败", e);
+      }
+      loadProblems();
+      loadDueCount();
+    })();
   }, []);
 
   const [code, setCode] = useState(
@@ -150,6 +167,7 @@ int main() {
   const [modelName, setModelName] = useState(() => localStorage.getItem("ai_model_name") ?? "deepseek-chat");
   const [apiKey, setApiKey] = useState(() => localStorage.getItem("ai_api_key") ?? "");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [title, setTitle] = useState("");
   const [problem, setProblem] = useState("实现快速排序：给定一个整数数组，使用快速排序算法将其升序排列并输出。");
   const [aiResult, setAiResult] = useState("");
   const [aiParsed, setAiParsed] = useState<any>(null);
@@ -354,12 +372,9 @@ int main() {
       try {
         const parsed = JSON.parse(result);
         setAiParsed(parsed);
-        setUserCategory(parsed.category ?? []);
-        setUserNotes(parsed.hint ?? "");
+        // 不再覆盖用户手写的分类标签与笔记，AI 分类单独存入 ai_category 字段
       } catch {
         setAiParsed(null);
-        setUserCategory([]);
-        setUserNotes("");
       }
     } catch (e) {
       setAiResult("调用失败：" + String(e));
@@ -394,6 +409,7 @@ int main() {
       const detail = await invoke<any>("get_problem_detail", { id });
       setCurrentProblemId(id);
       setCode(detail.code || "");
+      setTitle(detail.title || "");
       setProblem(detail.statement || "");
       setStdin("");
       setOutput("");
@@ -422,6 +438,7 @@ int main() {
   function newProblem() {
     setCurrentProblemId(null);
     setCode("");
+    setTitle("");
     setProblem("");
     setStdin("");
     setOutput("");
@@ -452,12 +469,16 @@ int main() {
 
   // 保存题目（新建或更新）+ 新建时生成三张卡片
   async function saveCard() {
+    if (aiLoading) {
+      alert("AI 正在分析中，请稍候再保存。");
+      return;
+    }
     try {
       const aiCategory = aiParsed?.category ?? [];
 
       const savedId = await invoke<number>("save_problem", {
         id: currentProblemId,
-        title: problem.substring(0, 30),
+        title: title.trim() || problem.substring(0, 30),
         statement: problem,
         code: code,
         aiCategory: aiCategory,
@@ -530,6 +551,27 @@ int main() {
       setImportText("");
       await loadProblems();
       alert(`导入完成：新增 ${res.inserted} 道，跳过重复 ${res.skipped} 道。`);
+    } catch (e) {
+      alert("导入失败：" + String(e));
+    } finally {
+      setImporting(false);
+    }
+  }
+
+  // 一键导入内置题库：初学者 / 竞赛者两套分流
+  async function importBuiltin(kind: "beginner" | "competition") {
+    const problems = kind === "beginner" ? beginnerProblems : competitionProblems;
+    const label = kind === "beginner" ? "初学者" : "竞赛者";
+    if (!window.confirm(`将导入「${label}」内置题库（共 ${problems.length} 道），重复题目会自动跳过，是否继续？`)) {
+      return;
+    }
+    setImporting(true);
+    try {
+      const data = JSON.stringify({ version: 1, problems });
+      const res = await invoke<{ inserted: number; skipped: number }>("import_problems", { data });
+      await loadProblems();
+      loadDueCount();
+      alert(`「${label}」题库导入完成：新增 ${res.inserted} 道，跳过重复 ${res.skipped} 道。`);
     } catch (e) {
       alert("导入失败：" + String(e));
     } finally {
@@ -1110,6 +1152,13 @@ int main() {
                         </select>
                       </label>
                     </div>
+                    <div style={{ fontSize: 12, marginBottom: 4, color: "var(--text-muted)" }}>标题</div>
+                    <input
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="题目标题（留空则自动取描述前 30 字）"
+                      style={{ width: "100%", boxSizing: "border-box", background: "var(--bg-panel-2)", color: "var(--text-color)", border: "1px solid var(--border-color)", padding: "6px", fontSize: 13, marginBottom: 8, borderRadius: "var(--radius-sm)" }}
+                    />
                     <textarea
                       value={problem}
                       onChange={(e) => setProblem(e.target.value)}
@@ -1349,6 +1398,23 @@ int main() {
                   style={{ padding: "10px 12px", cursor: "pointer", background: "transparent", color: "var(--text-color)", border: "1px solid var(--border-color)", borderRadius: "var(--radius-sm)", fontSize: 13, textAlign: "left" }}
                 >
                   📥 导入题库
+                </button>
+
+                <div style={{ height: 1, background: "var(--border-color)", margin: "6px 0" }} />
+                <div style={{ fontSize: 13, color: "var(--text-muted)" }}>内置题库：一键导入公开经典算法题，按难度分流。</div>
+                <button
+                  onClick={() => importBuiltin("beginner")}
+                  disabled={importing}
+                  style={{ padding: "10px 12px", cursor: "pointer", background: "transparent", color: "var(--success-color)", border: "1px solid var(--success-color)", borderRadius: "var(--radius-sm)", fontSize: 13, textAlign: "left" }}
+                >
+                  🟢 导入初学者题库（30 题）
+                </button>
+                <button
+                  onClick={() => importBuiltin("competition")}
+                  disabled={importing}
+                  style={{ padding: "10px 12px", cursor: "pointer", background: "transparent", color: "var(--danger-color)", border: "1px solid var(--danger-color)", borderRadius: "var(--radius-sm)", fontSize: 13, textAlign: "left" }}
+                >
+                  🔴 导入竞赛者题库（30 题）
                 </button>
 
                 <div style={{ height: 1, background: "var(--border-color)", margin: "6px 0" }} />
